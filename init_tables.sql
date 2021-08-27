@@ -12,7 +12,10 @@ CREATE TABLE IF NOT EXISTS  users
 CREATE TABLE IF NOT EXISTS  launches
   (
     id            SERIAL PRIMARY KEY,
+    launch_title  TEXT NOT NULL,
+    launch_info   TEXT NOT NULL,
     launched_by   INTEGER REFERENCES users(id),
+    launch_date   DATE,
     launch_qty    INTEGER NOT NULL,
     launch_price  NUMERIC NOT NULL,
     is_active     BOOLEAN DEFAULT TRUE
