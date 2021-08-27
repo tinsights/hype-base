@@ -1,0 +1,29 @@
+{
+  "name": "hype-base",
+  "version": "1.0.0",
+  "description": "RA Project 2: Server Side App",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinsights/hype-base.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tinsights/hype-base/issues"
+  },
+  "homepage": "https://github.com/tinsights/hype-base#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "ejs": "^3.1.6",
+    "eslint": "^7.32.0",
+    "express": "^4.17.1",
+    "jssha": "^3.2.0",
+    "method-override": "^3.0.0",
+    "pg": "^8.7.1"
+  }
+}
