@@ -32,18 +32,18 @@ setTimeout(() => {
   // user registration, get-> signup form, post-> submit form
   app.get('/signup', userRegister);
   app.post('/signup', userRegister);
-  // // user login, get-> login form, post-> submit form
+  // user login, get-> login form, post-> submit form
   app.get('/login', userLogin);
   app.post('/login', userLogin);
   // app.delete('/logout', userLogout);
-  // // create a launch, get-> creation form, post-> submit form
+  // create a launch, get-> creation form, post-> submit form
   app.get('/create-launch', createLaunch);
   app.post('/create-launch', createLaunch);
   // view a launch, access submit-bid form
   app.get('/launch', allLaunches);
-  // app.get('/launch/:id', viewLaunch);
-  // // submit a bid for a launch
-  // app.post('/launch/:id/bid', submitBid);
+  app.get('/launch/:id', viewLaunch);
+  // submit a bid for a launch
+  app.post('/launch/:id/bid', submitBid);
   app.use((req, res) => {
     res.status(404).send('404 NOT FOUND');
   });
@@ -165,5 +165,54 @@ const createLaunch = (req, res) => {
 
 const allLaunches = (req, res) => {
   console.log('All Launches');
-  res.send('all');
+  pool.query('SELECT * FROM launches', (err, result) => {
+    const launches = result.rows;
+    const content = {
+      launches,
+    };
+    res.render('all', content);
+  });
+};
+
+const viewLaunch = (req, res) => {
+  const { id } = req.params;
+  console.log(`Going to launch ${id}`);
+  pool.query(`SELECT * FROM launches WHERE id = ${id}`, (err, launchResult) => {
+    const launch = launchResult.rows[0];
+    pool.query(`SELECT bid_price FROM bids WHERE launch_id = ${id}`, (err, bidResult) => {
+      const bids = bidResult.rows.map((bidsObj) => bidsObj.bid_price);
+      const newPrice = updatePrice(launch.start_price, launch.quantity, bids);
+      console.log(`The lowest qualifying price is now ${newPrice}`);
+      launch.current_price = newPrice;
+      const content = {
+        launch,
+        bids,
+      };
+      res.render('launch', content);
+    });
+  });
+};
+
+const submitBid = (req, res) => {
+  const { id } = req.params;
+  const { bid } = req.body;
+  console.log(`Received ${bid} for launch ${req.params.id}`);
+  pool.query(`INSERT INTO bids (launch_id, bidder_id, bid_price) VALUES (${id}, 3, ${bid}) RETURNING *`, (err, result) => {
+    if (err) throw err;
+    res.redirect(`/launch/${id}`);
+  });
+};
+
+// takes in start price, launch qty, current bids and finds the price floor
+const updatePrice = (startPrice, quantity, bidArray) => {
+  // sort the bid array from highest to lowest
+  const sortedArray = bidArray.sort((a, b) => Number(b) - Number(a));
+  console.log(`The sorted array is ${sortedArray}`);
+  // if less bids than quantity, return start price
+  if (sortedArray.length <= quantity) {
+    console.log('fewer bids than qty, bid price is start price.');
+    return startPrice;
+  }
+  // TODO: what if some/all the bids are equal?
+  return sortedArray[quantity - 1];
 };
