@@ -12,12 +12,13 @@ CREATE TABLE IF NOT EXISTS  users
 CREATE TABLE IF NOT EXISTS  launches
   (
     id            SERIAL PRIMARY KEY,
-    launch_title  TEXT NOT NULL,
-    launch_info   TEXT NOT NULL,
+    title         TEXT NOT NULL,
+    info          TEXT NOT NULL,
     launched_by   INTEGER REFERENCES users(id),
-    launch_date   DATE,
-    launch_qty    INTEGER NOT NULL,
-    launch_price  NUMERIC NOT NULL,
+    start_date    DATE DEFAULT NOW(),
+    quantity      INTEGER NOT NULL,
+    start_price   NUMERIC NOT NULL,
+    current_price NUMERIC,
     is_active     BOOLEAN DEFAULT TRUE
   );
 
@@ -27,5 +28,6 @@ CREATE TABLE IF NOT EXISTS  bids
     launch_id     INTEGER REFERENCES launches(id),
     bidder_id     INTEGER REFERENCES users(id),
     bid_price     NUMERIC NOT NULL,
-    PRIMARY KEY (launch_id, bidder_id)
-  )
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    --PRIMARY KEY (launch_id, bidder_id)
+  );
