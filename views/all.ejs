@@ -5,11 +5,22 @@
 
   <main class="flex-shrink-0">
     <div class="container">
-      <h1 class="mt-5">Template with fixed navbar</h1>
-      <p class="lead">
-        A starter template with a navbar HTML and CSS. A fixed navbar has been added with padding-top: 60px; on the main
-        > .container.
-      </p>
+      <h1 class="mt-5">All Launches</h1>
+      <div class="row">
+        <% launches.forEach((launch, index) => { %> 
+          <% console.log(launch); %>
+        <div class="col-3">
+          <div class="card" style="width: 18rem;">
+            <img class="card-img-top" src="..." alt="Card image cap">
+            <div class="card-body">
+              <h5 class="card-title"><%= launch.launch_title %></h5>
+              <p class="card-text"> <%= launch.launch_info %></p>
+              <a href="<%=`/launch/${launch.id}` %>" class="btn btn-primary">View Launch</a>
+            </div>
+          </div> 
+        </div>
+        <% }); %> 
+      </div>
     </div>
   </main>
   <%- include('partials/footer') %>

@@ -1,0 +1,41 @@
+<%- include('partials/head') %>
+
+<body>
+  <%- include('partials/nav') %>
+
+  <main class="flex-shrink-0">
+    <div class="container">
+      <h1 class="mt-5"><%= launch.title %> </h1>
+      <p><%= launch.info %> </p>
+      <p>Quantity: <%= launch.quantity %> </p>
+      <p>Start Price: <%= launch.start_price %> </p>
+      <p>Current Price: <%= launch.current_price %> </p>
+      <p>Number of bids: <%= bids.length %> 
+      </p>
+      <p>
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+          Bid History
+        </button>
+      </p>
+      <div class="collapse" id="collapseExample">
+        <div class="card card-body">
+          <ol>
+            <% bids.forEach(bid=> { %> 
+              <li><%= bid %></li>
+              <% }); %> 
+          </ol>
+        </div>
+      </div>
+      <form class="entry-form-container" action="<%= `/launch/${launch.id}/bid` %>" method="POST">
+        <div class="row">
+          <div class="col-4">
+            <div class="form-group">
+              <label for="bid">Bid: </label>
+              <input class="form-control" name="bid" id="bid" type="number" min="<%= launch.start_price %>"required />
+            </div>
+            <button type="submit" class="btn btn-secondary">Submit Bid</button>
+          </div>
+      </form>
+    </div>
+  </main>
+  <%- include('partials/footer') %>
