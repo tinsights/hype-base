@@ -7,20 +7,21 @@
     <div class="container">
       <h1 class="mt-5">All Launches</h1>
       <div class="row">
-        <% launches.forEach((launch, index) => { %> 
-          <% console.log(launch); %>
+        <% launches.forEach((launch, index) => { %> <% console.log(launch); %>
         <div class="col-3">
-          <div class="card" style="width: 18rem;">
-            <img class="card-img-top" src="..." alt="Card image cap">
+          <div class="card" style="width: 18rem">
+            <img class="card-img-top" src="..." alt="Card image cap" />
             <div class="card-body">
-              <h5 class="card-title"><%= launch.launch_title %></h5>
-              <p class="card-text"> <%= launch.launch_info %></p>
+              <h5 class="card-title"><%= launch.title %></h5>
+              <p class="card-text"><%= launch.info %></p>
               <a href="<%=`/launch/${launch.id}` %>" class="btn btn-primary">View Launch</a>
+              <span class="text-right" style="float: right">S$<%= launch.start_price %></span>
             </div>
-          </div> 
+          </div>
         </div>
-        <% }); %> 
+        <% }); %>
       </div>
     </div>
   </main>
   <%- include('partials/footer') %>
+</body>
