@@ -3,18 +3,30 @@ import pg from 'pg';
 import methodOverride from 'method-override';
 import cookieParser from 'cookie-parser';
 import jsSHA from 'jssha';
-import axios from 'axios';
 
 const SALT = 'pepper pots';
-
+const PORT = process.env.PORT || 3004;
 const { Pool } = pg;
-
-const pgConnectionConfigs = {
-  user: 'tail',
-  host: 'localhost',
-  database: 'hypebase',
-  port: 5432,
-};
+let pgConnectionConfigs;
+if (process.env.ENV === 'PRODUCTION') {
+  // determine how we connect to the remote Postgres server
+  pgConnectionConfigs = {
+    user: 'postgres',
+    // set DB_PASSWORD as an environment variable for security.
+    password: process.env.DB_PASSWORD,
+    host: 'localhost',
+    database: 'hypebase',
+    port: 5432,
+  };
+} else {
+  // determine how we connect to the local Postgres server
+  pgConnectionConfigs = {
+    user: 'tail',
+    host: 'localhost',
+    database: 'hypebase',
+    port: 5432,
+  };
+}
 
 const pool = new Pool(pgConnectionConfigs);
 
@@ -22,6 +34,7 @@ const app = express();
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+app.use(express.static('uploads'));
 app.use(express.urlencoded({ extended: false }));
 app.use(methodOverride('_method'));
 app.use(cookieParser());
@@ -48,7 +61,7 @@ setTimeout(() => {
     res.status(404).send('404 NOT FOUND');
   });
 
-  app.listen(3004);
+  app.listen(PORT);
 }, 0);
 
 const landingPage = (req, res) => {
