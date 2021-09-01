@@ -160,7 +160,7 @@ const createLaunch = (req, res) => {
   else if (req.method === 'POST') {
     console.log('req.body :>> ', req.body);
     const createLaunchQuery = `INSERT INTO launches
-                                        (launch_title, launch_info, launched_by, launch_qty, launch_price )
+                                        (title, info, launched_by, quantity, start_price )
                                 VALUES  (     $1,         $2,           $3,         $4,         $5        )
                                 RETURNING *`;
     console.log('req.cookies.userId :>> ', req.cookies.userId);
