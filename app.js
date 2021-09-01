@@ -162,7 +162,7 @@ const createLaunch = (req, res) => {
     const createLaunchQuery = `INSERT INTO launches
                                         (title, info, launched_by, quantity, start_price )
                                 VALUES  (     $1,         $2,           $3,         $4,         $5        )
-                                RETURNING *`;
+                                RETURNING id`;
     console.log('req.cookies.userId :>> ', req.cookies.userId);
     req.body.userId = req.cookies.userId;
 
@@ -171,7 +171,9 @@ const createLaunch = (req, res) => {
     pool.query(createLaunchQuery, values, (err, result) => {
       if (err) throw err;
       console.table(result.rows);
-      res.send('event created');
+      const { id } = result.rows[0];
+      console.log(id);
+      res.redirect(`/launch/${id}`);
     });
   }
 };
