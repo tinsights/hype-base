@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/tinsights/hype-base#readme",
   "dependencies": {
+    "compute-histogram": "^0.9.11",
     "cookie-parser": "^1.4.5",
     "ejs": "^3.1.6",
     "eslint": "^7.32.0",
@@ -26,6 +27,7 @@
     "express": "^4.17.1",
     "jssha": "^3.2.0",
     "method-override": "^3.0.0",
+    "multer": "^1.4.3",
     "pg": "^8.7.1"
   }
 }

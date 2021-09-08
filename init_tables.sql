@@ -1,6 +1,5 @@
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS launches CASCADE;
-DROP TABLE IF EXISTS bids CASCADE;
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE TABLE IF NOT EXISTS  users
   (
@@ -15,10 +14,12 @@ CREATE TABLE IF NOT EXISTS  launches
     title         TEXT NOT NULL,
     info          TEXT NOT NULL,
     launched_by   INTEGER REFERENCES users(id),
-    start_date    DATE DEFAULT NOW(),
+    start_date    TIMESTAMPTZ,
+    end_date      TIMESTAMPTZ,
     quantity      INTEGER NOT NULL,
     start_price   NUMERIC NOT NULL,
     current_price NUMERIC,
+    photo         TEXT,
     is_active     BOOLEAN DEFAULT TRUE
   );
 
@@ -28,6 +29,7 @@ CREATE TABLE IF NOT EXISTS  bids
     launch_id     INTEGER REFERENCES launches(id),
     bidder_id     INTEGER REFERENCES users(id),
     bid_price     NUMERIC NOT NULL,
+    price_floor   NUMERIC,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
     --PRIMARY KEY (launch_id, bidder_id)
   );

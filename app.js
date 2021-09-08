@@ -3,8 +3,10 @@ import pg from 'pg';
 import methodOverride from 'method-override';
 import cookieParser from 'cookie-parser';
 import jsSHA from 'jssha';
+import multer from 'multer';
+import computeHistogram from 'compute-histogram';
 
-const SALT = 'pepper pots';
+const SALT = process.env.SALT || 'pepper pots';
 const PORT = process.env.PORT || 3004;
 const { Pool } = pg;
 let pgConnectionConfigs;
@@ -39,6 +41,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(methodOverride('_method'));
 app.use(cookieParser());
 
+// set the name of the upload directory here
+const multerUpload = multer({ dest: 'uploads/' });
+
 setTimeout(() => {
   // landing page (not sure what goes here for now)
   app.get('/', landingPage);
@@ -51,7 +56,7 @@ setTimeout(() => {
   // app.delete('/logout', userLogout);
   // create a launch, get-> creation form, post-> submit form
   app.get('/create-launch', createLaunch);
-  app.post('/create-launch', createLaunch);
+  app.post('/create-launch', multerUpload.single('photo'), createLaunch);
   // view a launch, access submit-bid form
   app.get('/launch', allLaunches);
   app.get('/launch/:id', viewLaunch);
@@ -160,13 +165,22 @@ const createLaunch = (req, res) => {
   else if (req.method === 'POST') {
     console.log('req.body :>> ', req.body);
     const createLaunchQuery = `INSERT INTO launches
-                                        (title, info, launched_by, quantity, start_price )
-                                VALUES  (     $1,         $2,           $3,         $4,         $5        )
-                                RETURNING id`;
+                              (title, info, launched_by, quantity, start_price, current_price, start_date, end_date, photo)
+                              VALUES  ($1,$2,$3,$4,$5,$5,$6,$7,$8)
+                              RETURNING id`;
     console.log('req.cookies.userId :>> ', req.cookies.userId);
     req.body.userId = req.cookies.userId;
 
-    const values = [req.body.title, req.body.info, req.body.userId, req.body.quantity, req.body.price];
+    const values = [
+      req.body.title,
+      req.body.info,
+      req.body.userId,
+      req.body.quantity,
+      req.body.price,
+      req.body.startDate,
+      req.body.endDate,
+      req.file.filename,
+    ];
     req.body.values = values;
     pool.query(createLaunchQuery, values, (err, result) => {
       if (err) throw err;
@@ -192,16 +206,18 @@ const allLaunches = (req, res) => {
 const viewLaunch = (req, res) => {
   const { id } = req.params;
   console.log(`Going to launch ${id}`);
+  // get launch details
   pool.query(`SELECT * FROM launches WHERE id = ${id}`, (err, launchResult) => {
     const launch = launchResult.rows[0];
-    pool.query(`SELECT bid_price FROM bids WHERE launch_id = ${id}`, (err, bidResult) => {
+    // get all bids
+    pool.query(`SELECT * FROM bids WHERE launch_id = ${id}`, (err, bidResult) => {
       const bids = bidResult.rows.map((bidsObj) => bidsObj.bid_price);
-      const newPrice = updatePrice(launch.start_price, launch.quantity, bids);
-      console.log(`The lowest qualifying price is now ${newPrice}`);
-      launch.current_price = newPrice;
+      const bidHist = computeHistogram(bids);
+      console.log('bidHist :>> ', bidHist);
       const content = {
         launch,
         bids,
+        rows: bidResult.rows,
       };
       res.render('launch', content);
     });
@@ -211,23 +227,38 @@ const viewLaunch = (req, res) => {
 const submitBid = (req, res) => {
   const { id } = req.params;
   const { bid } = req.body;
+  const { userId } = req.cookies;
+  let bidId;
+  let bidPriceArr;
+  let bidCount;
+  let currPrice;
+  let minBid;
+  let launchQty;
+  let launchPrice;
   console.log(`Received ${bid} for launch ${req.params.id}`);
-  pool.query(`INSERT INTO bids (launch_id, bidder_id, bid_price) VALUES (${id}, 3, ${bid}) RETURNING *`, (err, result) => {
-    if (err) throw err;
-    res.redirect(`/launch/${id}`);
-  });
+  // count the current number of bids for launch
+  pool.query(`INSERT INTO bids (launch_id, bidder_id, bid_price) VALUES (${id}, ${userId}, ${bid}) RETURNING id`)
+    .then((result) => {
+      bidId = result.rows[0].id;
+      return pool.query(`SELECT * FROM bids where launch_id = ${id}`);
+    })
+    .then((result) => {
+      console.log('bidId :>> ', bidId);
+      console.table(result.rows);
+      bidPriceArr = result.rows.map((bidData) => bidData.bid_price);
+      bidCount = bidPriceArr.length;
+      return pool.query(`SELECT * FROM launches WHERE id = ${id}`);
+    })
+    .then((result) => {
+      launchPrice = result.rows[0].start_price;
+      launchQty = result.rows[0].quantity;
+      currPrice = result.rows[0].current_price;
+    })
+    .catch((err) => console.log(err.stack));
 };
 
-// takes in start price, launch qty, current bids and finds the price floor
-const updatePrice = (startPrice, quantity, bidArray) => {
-  // sort the bid array from highest to lowest
-  const sortedArray = bidArray.sort((a, b) => Number(b) - Number(a));
-  console.log(`The sorted array is ${sortedArray}`);
-  // if less bids than quantity, return start price
-  if (sortedArray.length <= quantity) {
-    console.log('fewer bids than qty, bid price is start price.');
-    return startPrice;
-  }
-  // TODO: what if some/all the bids are equal?
-  return sortedArray[quantity - 1];
+const lowestPrice = (bids, quantity) => {
+  const sortedBidsArr = bids.sort((a, b) => b - a);
+  console.log('sortedBidsArr :>> ', sortedBidsArr);
+  return sortedBidsArr[quantity - 2];
 };
