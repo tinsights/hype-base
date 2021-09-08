@@ -5,6 +5,12 @@ import cookieParser from 'cookie-parser';
 import jsSHA from 'jssha';
 import multer from 'multer';
 import computeHistogram from 'compute-histogram';
+import cron from 'cron';
+
+const job = new cron.CronJob('* * * * * *', () => {
+  refresh();
+}, null, true, 'Asia/Singapore');
+job.start();
 
 const SALT = process.env.SALT || 'pepper pots';
 const PORT = process.env.PORT || 3004;
@@ -165,8 +171,8 @@ const createLaunch = (req, res) => {
   else if (req.method === 'POST') {
     console.log('req.body :>> ', req.body);
     const createLaunchQuery = `INSERT INTO launches
-                              (title, info, launched_by, quantity, start_price, current_price, start_date, end_date, photo)
-                              VALUES  ($1,$2,$3,$4,$5,$5,$6,$7,$8)
+                              (title, info, launched_by, quantity, start_price, current_price, end_date, photo)
+                              VALUES  ($1,$2,$3,$4,$5,$5,$6,$7)
                               RETURNING id`;
     console.log('req.cookies.userId :>> ', req.cookies.userId);
     req.body.userId = req.cookies.userId;
@@ -177,7 +183,6 @@ const createLaunch = (req, res) => {
       req.body.userId,
       req.body.quantity,
       req.body.price,
-      req.body.startDate,
       req.body.endDate,
       req.file.filename,
     ];
@@ -207,20 +212,21 @@ const viewLaunch = (req, res) => {
   const { id } = req.params;
   console.log(`Going to launch ${id}`);
   // get launch details
-  pool.query(`SELECT * FROM launches WHERE id = ${id}`, (err, launchResult) => {
-    const launch = launchResult.rows[0];
-    // get all bids
-    pool.query(`SELECT * FROM bids WHERE launch_id = ${id}`, (err, bidResult) => {
-      const bids = bidResult.rows.map((bidsObj) => bidsObj.bid_price);
-      const bidHist = computeHistogram(bids);
-      console.log('bidHist :>> ', bidHist);
-      const content = {
-        launch,
-        bids,
-        rows: bidResult.rows,
-      };
-      res.render('launch', content);
-    });
+  Promise.all([
+    pool.query(`SELECT * FROM launches WHERE id = ${id}`),
+    pool.query(`SELECT * FROM bids WHERE launch_id = ${id}`),
+  ]).then((result) => {
+    const launch = result[0].rows[0];
+    const bidResult = result[1].rows;
+    const bids = bidResult.map((bidsObj) => bidsObj.bid_price);
+    // const bidHist = computeHistogram(bids);
+    // console.log('bidHist :>> ', bidHist);
+    const content = {
+      launch,
+      bids,
+      bidResult,
+    };
+    res.render('launch', content);
   });
 };
 
@@ -234,7 +240,6 @@ const submitBid = (req, res) => {
   let currPrice;
   let minBid;
   let launchQty;
-  let launchPrice;
   console.log(`Received ${bid} for launch ${req.params.id}`);
   // count the current number of bids for launch
   pool.query(`INSERT INTO bids (launch_id, bidder_id, bid_price) VALUES (${id}, ${userId}, ${bid}) RETURNING id`)
@@ -243,22 +248,71 @@ const submitBid = (req, res) => {
       return pool.query(`SELECT * FROM bids where launch_id = ${id}`);
     })
     .then((result) => {
-      console.log('bidId :>> ', bidId);
-      console.table(result.rows);
+      // console.log('bidId :>> ', bidId);
+      // console.table(result.rows);
       bidPriceArr = result.rows.map((bidData) => bidData.bid_price);
       bidCount = bidPriceArr.length;
       return pool.query(`SELECT * FROM launches WHERE id = ${id}`);
     })
     .then((result) => {
-      launchPrice = result.rows[0].start_price;
       launchQty = result.rows[0].quantity;
       currPrice = result.rows[0].current_price;
+      console.log(`There are currently ${bidCount} bids for ${launchQty} items.`);
+      minBid = currPrice;
+      if (bidCount >= launchQty) {
+        console.log('Updating price');
+        minBid = lowestBid(bidPriceArr, launchQty);
+        console.log('minBid :>> ', minBid);
+        pool.query(`UPDATE launches SET current_price = ${minBid} WHERE id = ${id}`);
+      }
+      pool.query(`UPDATE bids SET price_floor = ${minBid} WHERE id = ${bidId}`);
+    })
+    .then((result) => {
+      res.redirect(`/launch/${id}`);
     })
     .catch((err) => console.log(err.stack));
 };
 
-const lowestPrice = (bids, quantity) => {
+const lowestBid = (bids, quantity) => {
   const sortedBidsArr = bids.sort((a, b) => b - a);
   console.log('sortedBidsArr :>> ', sortedBidsArr);
-  return sortedBidsArr[quantity - 2];
+  return sortedBidsArr[quantity - 1];
+};
+
+const refresh = () => {
+  pool.query('SELECT * FROM launches')
+    .then((results) => {
+      const launchArr = results.rows;
+      launchArr.forEach((launch) => {
+        if (launch.is_active
+          && (Date.parse(launch.end_date) - Date.now()) <= 0) {
+          console.log(`${launch.title} ended.`);
+          Promise.all([
+            pool.query(`UPDATE launches SET is_active = false WHERE id = ${launch.id} RETURNING quantity`),
+            pool.query(`SELECT * FROM bids WHERE launch_id = ${launch.id}`),
+          ])
+            .then((results) => {
+              const { quantity } = results[0].rows[0];
+              const bidsArr = results[1].rows;
+              selectWinners(launch.id, quantity, bidsArr);
+            });
+        }
+      });
+    });
+};
+
+const selectWinners = (id, qty, bids) => {
+  const bidCount = bids.length;
+  const sortedBids = bids.sort((a, b) => b.bid_price - a.bid_price);
+  console.log('sortedBids :>> ', sortedBids);
+  let minBid = 0;
+  if (bidCount >= qty) {
+    minBid = sortedBids[qty - 1].bid_price;
+  }
+  console.log('minBid :>> ', minBid);
+  pool.query(`UPDATE bids
+              SET qualified = TRUE
+              WHERE launch_id = ${id}
+              AND
+              bid_price >= ${minBid}`);
 };

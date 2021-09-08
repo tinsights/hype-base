@@ -20,6 +20,7 @@
   "dependencies": {
     "compute-histogram": "^0.9.11",
     "cookie-parser": "^1.4.5",
+    "cron": "^1.8.2",
     "ejs": "^3.1.6",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
