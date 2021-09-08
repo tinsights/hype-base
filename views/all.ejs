@@ -5,17 +5,17 @@
 
   <main class="flex-shrink-0">
     <div class="container">
-      <h1 class="mt-5">All Launches</h1>
+      <h1 class="mt-5 text-center">All Launches</h1>
       <div class="row">
         <% launches.forEach((launch, index) => { %> <% console.log(launch); %>
         <div class="col col-lg-3">
-          <div class="card" style="width: 18rem">
-            <img class="card-img-top" src="/<%= launch.photo %> " alt="Card image cap" />
+          <a href="<%=`/launch/${launch.id}` %>">
+          <div class="card launch-card">
+            <img class="card-img-top" src="/<%= launch.photo %> " caption="Test" />
+            </a>
             <div class="card-body">
-              <h5 class="card-title"><%= launch.title %></h5>
-              <p class="card-text"><%= launch.info %></p>
-              <a href="<%=`/launch/${launch.id}` %>" class="btn btn-primary">View Launch</a>
-              <span class="text-right" style="float: right">S$<%= launch.start_price %></span>
+              <h5 class="card-title text-center"><%= launch.title %></h5>
+              <p class="card-text text-center"><%= launch.info %></p>
             </div>
           </div>
         </div>

@@ -7,31 +7,51 @@
     <div class="container">
       <h1 class="text-center mt-5"><%= launch.title %> </h1>
       <div class="row">
-        <div class="col-6"><img class ="img-fluid" src="/<%= launch.photo %>"> </div>
-        </div>
-      <p><%= launch.info %> </p>
+        <div class="col-8">
+          <p><%= launch.info %> </p>
       <p>Quantity: <%= launch.quantity %> </p>
       <p>Start Price: <%= launch.start_price %> </p>
       <p>Current Price: <%= launch.current_price %> </p>
       <p>Number of bids: <%= bids.length %></p>
       <p>Start Date: <%= launch.start_date %> </p>
       <p>End Date: <%= launch.end_date %> </p>
+        </div>
+        <div class="col-4"><img class ="img-fluid" src="/<%= launch.photo %>"> </div>
+        </div>
       <p>
         <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
           Bid History
         </button>
       </p>
       <div class="collapse" id="collapseExample">
-        <div><canvas id="bidSpread"></canvas></div>
-        <div class="card card-body">
-          <ol>
-            <% bids.forEach(bid=> { %> 
-              <li><%= bid %></li>
-              <% }); %> 
-          </ol>
-        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">User</th>
+              <th scope="col">Time</th>
+              <th scope="col">Bid</th>
+              <th scope="col">Price Floor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% let index = 1; %>
+            <% bidResult.forEach((bid) => { %> 
+              <% const d = bid.created_at %>
+              <% if (bid.bid_price >= launch.current_price) { %> 
+            <tr>
+              <th scope="row"><%= index  %> </th>
+              <td><%= bid.bidder_id %> </td>
+              <td><%= d.toLocaleString() %> </td>
+              <td><%= bid.bid_price %></td>
+              <td><%= bid.price_floor %></td>
+            </tr>
+            <% index+=1; } %> 
+            <% }); %> 
+          </tbody>
+        </table>
       </div>
-      
+      <% if(launch.is_active) { %> 
       <form class="entry-form-container" action="<%= `/launch/${launch.id}/bid` %>" method="POST">
         <div class="row">
           <div class="col-4">
@@ -42,35 +62,8 @@
             <button type="submit" class="btn btn-secondary">Submit Bid</button>
           </div>
       </form>
+
     </div>
   </main>
-  <script>
-  // === include 'setup' then 'config' above ===
-  const labels = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-];
-const data = {
-  labels: labels,
-  datasets: [{
-    label: 'Bid Scatter',
-    backgroundColor: 'rgb(255, 99, 132)',
-    borderColor: 'rgb(255, 99, 132)',
-    data: [0, 10, 5, 2, 20, 30, 45],
-  }]
-};
-const config = {
-  type: 'line',
-  data: data,
-  options: {}
-};
-  var myChart = new Chart(
-    document.getElementById('bidSpread'),
-    config
-  );
-</script>
+  
   <%- include('partials/footer') %>
