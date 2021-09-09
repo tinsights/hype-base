@@ -75,6 +75,56 @@ setTimeout(() => {
   app.listen(PORT);
 }, 0);
 
+const getHash = (input) => {
+  // create new SHA object
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+
+  // create an unhashed cookie string based on user ID and salt
+  const unhashedString = `${input}-${SALT}`;
+
+  // generate a hashed cookie string using SHA object
+  shaObj.update(unhashedString);
+
+  return shaObj.getHash('HEX');
+};
+
+app.use((request, response, next) => {
+  // set the default value
+  request.isUserLoggedIn = false;
+
+  // check to see if the cookies you need exists
+  if (request.cookies.loggedIn && request.cookies.userId) {
+    // get the hased value that should be inside the cookie
+    const hash = getHash(request.cookies.userId);
+
+    // test the value of the cookie
+    if (request.cookies.loggedInHash === hash) {
+      request.isUserLoggedIn = true;
+
+      // look for this user in the database
+      const values = [request.cookies.userId];
+
+      // try to get the user
+      pool.query('SELECT * FROM users WHERE id=$1', values, (error, result) => {
+        if (error || result.rows.length < 1) {
+          response.status(503).send('sorry!');
+          return;
+        }
+
+        // set the user as a key in the request object so that it's accessible in the route
+        request.user = result.rows[0];
+
+        next();
+      });
+
+      // make sure we don't get down to the next() below
+      return;
+    }
+  }
+
+  next();
+});
+
 const landingPage = (req, res) => {
   console.log('Landing Page');
   res.render('index');
@@ -82,6 +132,10 @@ const landingPage = (req, res) => {
 
 const userRegister = (req, res) => {
   console.log('Register');
+  if (req.isUserLoggedIn === true) {
+    res.redirect('/');
+    return;
+  }
   if (req.method === 'GET') {
     res.render('register');
   }
@@ -107,6 +161,10 @@ const userRegister = (req, res) => {
 
 const userLogin = (req, res) => {
   console.log('User Login');
+  if (req.isUserLoggedIn === true) {
+    res.redirect('/');
+    return;
+  }
   if (req.method === 'GET') {
     res.render('login');
   }
@@ -164,6 +222,10 @@ const userLogin = (req, res) => {
 };
 
 const createLaunch = (req, res) => {
+  if (!req.isUserLoggedIn) {
+    res.redirect('/login');
+    return;
+  }
   console.log('createLaunch');
   if (req.method === 'GET') {
     res.render('create');
@@ -209,6 +271,10 @@ const allLaunches = (req, res) => {
 };
 
 const viewLaunch = (req, res) => {
+  if (!req.isUserLoggedIn) {
+    res.redirect('/login');
+    return;
+  }
   const { id } = req.params;
   console.log(`Going to launch ${id}`);
   // get launch details

@@ -3,48 +3,86 @@
 <body>
   <%- include('partials/nav') %>
 
-  <main class="flex-shrink-0">
+  <main class="d-flex">
     <div class="container">
+      <div>
       <h1 class="text-center mt-5"><%= launch.title %> </h1>
-      <div class="row">
-        <div class="col-8">
-          <p><%= launch.info %> </p>
-      <p>Quantity: <%= launch.quantity %> </p>
-      <p>Start Price: <%= launch.start_price %> </p>
-      <p>Current Price: <%= launch.current_price %> </p>
-      <p>Number of bids: <%= bids.length %></p>
-      <p>Start Date: <%= launch.start_date %> </p>
-      <p>End Date: <%= launch.end_date %> </p>
+      <p class="lead text-center"><%= launch.info %> </p>
+      </div>
+      <div class="container text-center">
+        <% if(launch.is_active) { %> 
+      <div class="w-50 m-auto text-center" id="countdown">
+        <% const d = Date.parse(launch.end_date) - Date.now() %>
+        <% const msPerSec = 1000; %>
+        <% const msPerMin = msPerSec * 60; %>
+        <% const msPerHr = msPerMin * 60; %>
+        <% const msPerDay = msPerHr * 24 %> 
+        <% const daysLeft =  Math.floor(d / msPerDay); %> 
+        <% const hoursLeft = Math.floor((d - daysLeft*msPerDay) / msPerHr); %> 
+        <% const minsLeft = Math.floor((d - daysLeft*msPerDay - hoursLeft*msPerHr)/msPerMin) %> 
+        <% const secondsLeft = Math.floor((d - daysLeft*msPerDay - hoursLeft*msPerHr - minsLeft*msPerMin)/msPerSec) %>
+        <div class="row countdown-num">
+          <div class="col-3" id="days"><%= daysLeft %> </div>
+          <div class="col-3" id="hrs"><%= hoursLeft %> </div>
+          <div class="col-3" id="mins"><%= minsLeft %> </div>
+          <div class="col-3" id="secs"><%= secondsLeft %> </div>
         </div>
-        <div class="col-4"><img class ="img-fluid" src="/<%= launch.photo %>"> </div>
+        <div class="row countdown-text">
+          <div class="col-3">Days</div>
+          <div class="col-3">Hours</div>
+          <div class="col-3">Minutes</div>
+          <div class="col-3">Seconds</div>
         </div>
+        </div>
+        <% } %> 
+          <div class="w-50 m-auto d-none" id="launchover">
+            <h2>Aww! You missed it :(</h2>
+          </div>
+  </div>
+      
+      <div class="row flex-row-reverse">
+        <div class="col-12 col-lg-5"><img class ="img-fluid" src="/<%= launch.photo %>"> </div>
+        <div class="col-12 col-lg-5">
+        <div class="row m-5 text-center display-5">
+          <p class="cur-price">$<%= launch.current_price %></p>
+          <p><s><small class="text-muted l-price">$<%= launch.start_price %></small></s></p>
+        </div>
+        <div class="row m-5 text-center display-6">
+          <p><strong><%= bidResult.length %></strong> bids for <strong><%= launch.quantity %></strong> items! Hurry!</p>
+        </div>
+        </div>
+ 
+      </div>
       <p>
-        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+        <div class="text-center">
+        <button class="m-auto btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
           Bid History
         </button>
+        </div>
       </p>
       <div class="collapse" id="collapseExample">
         <table class="table">
           <thead>
             <tr>
-              <th scope="col">#</th>
-              <th scope="col">User</th>
-              <th scope="col">Time</th>
-              <th scope="col">Bid</th>
-              <th scope="col">Price Floor</th>
+              <th scope="col" class="text-center">#</th>
+              <th scope="col" class="text-center">User</th>
+              <th scope="col" class="text-center">Bid</th>
+              <th scope="col" class="text-center">Price Floor</th>
+              <th scope="col" class="text-center">Time</th>
             </tr>
           </thead>
           <tbody>
             <% let index = 1; %>
-            <% bidResult.forEach((bid) => { %> 
-              <% const d = bid.created_at %>
+            <% const bidsArr = bidResult.sort((a, b) => b.bid_price - a.bid_price) %> 
+            <% bidsArr.forEach((bid) => { %> 
+              <% const bidtime = bid.created_at %>
               <% if (bid.bid_price >= launch.current_price) { %> 
             <tr>
               <th scope="row"><%= index  %> </th>
-              <td><%= bid.bidder_id %> </td>
-              <td><%= d.toLocaleString() %> </td>
-              <td><%= bid.bid_price %></td>
-              <td><%= bid.price_floor %></td>
+              <td class="text-center"><%= bid.bidder_id %> </td>
+              <td class="text-center"><%= bid.bid_price %></td>
+              <td class="text-center"><%= bid.price_floor %></td>
+              <td class="text-center"><%= bidtime.toLocaleString() %> </td>
             </tr>
             <% index+=1; } %> 
             <% }); %> 
@@ -62,8 +100,44 @@
             <button type="submit" class="btn btn-secondary">Submit Bid</button>
           </div>
       </form>
-
+      <% }; %> 
     </div>
-  </main>
-  
+    <div id="timeleft" class="d-none"><%= Date.parse(launch.end_date) %></div>
+    <div id="isActive" class="d-none"><%= launch.is_active %></div>
+
+    <script>
+      const days = document.getElementById("days");
+      const hrs = document.getElementById("hrs");
+      const mins = document.getElementById("mins");
+      const secs = document.getElementById("secs");
+      const isActive = document.getElementById("isActive").innerText === 'true';
+      let d = Number(document.getElementById("timeleft").innerText);
+      const launchover = document.getElementById("launchover");
+      const msPerSec = 1000;
+      const msPerMin = msPerSec * 60;
+      const msPerHr = msPerMin * 60;
+      const msPerDay = msPerHr * 24;
+      let timeleft = d - Date.now();
+
+      const timer = setInterval(() => {
+        timeleft = d - Date.now();
+        if(timeleft <= 0) {
+          if(isActive) {
+            const countdown = document.getElementById("countdown");
+            countdown.classList.add("d-none");
+          }
+          launchover.classList.remove("d-none");
+          clearInterval(timer);
+        }
+        const daysLeft =  Math.floor(timeleft / msPerDay); 
+        const hoursLeft = Math.floor((timeleft - daysLeft*msPerDay) / msPerHr); 
+        const minsLeft = Math.floor((timeleft - daysLeft*msPerDay - hoursLeft*msPerHr)/msPerMin);
+        const secondsLeft = Math.floor((timeleft - daysLeft*msPerDay - hoursLeft*msPerHr - minsLeft*msPerMin)/msPerSec);
+        days.innerText = daysLeft;
+        hrs.innerText = hoursLeft;
+        mins.innerText = minsLeft;
+        secs.innerText = secondsLeft;
+       }, 1000);
+    </script>
+</main>
   <%- include('partials/footer') %>

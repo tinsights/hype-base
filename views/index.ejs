@@ -3,11 +3,119 @@
 <body>
   <%- include('partials/nav') %>
 
-  <main class="flex-shrink-0">
-    <div class="container">
+  <main class="vh-100 d-flex flex-column">
+    <div class="container text-center mb-5">
       <h1 class="mt-5">Hype Base</h1>
       <p class="lead">Get hyped</p>
     </div>
+    <div class="mt-5 container-fluid">
+        <div id="carouselExampleDark" class="w-100 carousel carousel-dark slide" data-bs-ride="carousel">
+          <div class="container carousel-inner">
+            <div class="carousel-item active" data-bs-interval="10000">
+              <div class="row">
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item" data-bs-interval="2000">
+              <div class="row">
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row">
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Card Title</h5>
+                      <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            class="carousel-control-prev"
+            type="button"
+            data-bs-target="#carouselExampleDark"
+            data-bs-slide="prev"
+          >
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button
+            class="carousel-control-next"
+            type="button"
+            data-bs-target="#carouselExampleDark"
+            data-bs-slide="next"
+          >
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
   </main>
   <%- include('partials/footer') %>
 </body>

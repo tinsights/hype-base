@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS  users
   (
     id            SERIAL PRIMARY KEY,
     email         TEXT NOT NULL UNIQUE,
+    username      VARCHAR(12),
     password      TEXT NOT NULL
   );
 
@@ -12,6 +13,7 @@ CREATE TABLE IF NOT EXISTS  launches
   (
     id            SERIAL PRIMARY KEY,
     title         TEXT NOT NULL,
+    summary       TEXT NOT NULL,
     info          TEXT NOT NULL,
     launched_by   INTEGER REFERENCES users(id),
     start_date    TIMESTAMPTZ DEFAULT NOW(),
