@@ -93,7 +93,7 @@ app.use((request, response, next) => {
   request.isUserLoggedIn = false;
 
   // check to see if the cookies you need exists
-  if (request.cookies.loggedIn && request.cookies.userId) {
+  if (request.cookies.loggedInHash && request.cookies.userId) {
     // get the hased value that should be inside the cookie
     const hash = getHash(request.cookies.userId);
 
@@ -148,9 +148,9 @@ const userRegister = (req, res) => {
     const hashedPassword = shaObj.getHash('HEX');
 
     // store the hashed password in our DB
-    const values = [req.body.email, hashedPassword];
-    const registerQuery = `INSERT INTO users (email, password)
-                              VALUES         ($1, $2)`;
+    const values = [req.body.email, req.body.username, hashedPassword];
+    const registerQuery = `INSERT INTO users (email, username, password)
+                              VALUES         ($1,$2,$3)`;
     pool.query(registerQuery, values, (err, result) => {
       if (err) throw err;
       console.log(result.rows);
@@ -280,7 +280,7 @@ const viewLaunch = (req, res) => {
   // get launch details
   Promise.all([
     pool.query(`SELECT * FROM launches WHERE id = ${id}`),
-    pool.query(`SELECT * FROM bids WHERE launch_id = ${id}`),
+    pool.query(`SELECT * FROM bids INNER JOIN users ON bidder_id = users.id WHERE launch_id = ${id}`),
   ]).then((result) => {
     const launch = result[0].rows[0];
     const bidResult = result[1].rows;

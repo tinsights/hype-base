@@ -79,7 +79,7 @@
               <% if (bid.bid_price >= launch.current_price) { %> 
             <tr>
               <th scope="row"><%= index  %> </th>
-              <td class="text-center"><%= bid.bidder_id %> </td>
+              <td class="text-center"><%= bid.username %> </td>
               <td class="text-center"><%= bid.bid_price %></td>
               <td class="text-center"><%= bid.price_floor %></td>
               <td class="text-center"><%= bidtime.toLocaleString() %> </td>

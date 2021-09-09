@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS  launches
   (
     id            SERIAL PRIMARY KEY,
     title         TEXT NOT NULL,
-    summary       TEXT NOT NULL,
+    summary       TEXT,
     info          TEXT NOT NULL,
     launched_by   INTEGER REFERENCES users(id),
     start_date    TIMESTAMPTZ DEFAULT NOW(),
