@@ -53,6 +53,11 @@
         </div>
  
       </div>
+      <div>
+        <canvas id="myChart"></canvas>
+      </div>
+ 
+
       <p>
         <div class="text-center">
         <button class="m-auto btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
@@ -104,8 +109,61 @@
     </div>
     <div id="timeleft" class="d-none"><%= Date.parse(launch.end_date) %></div>
     <div id="isActive" class="d-none"><%= launch.is_active %></div>
+    
+    <script type='text/javascript'>
+
+      Date.prototype.formatMMDDYYYY = function() {
+          return (this.getDate() +
+          "/" +
+          (this.getMonth() + 1) + 
+          "/" +  this.getFullYear()
+          )
+      };
+
+
+      var bidResult =<%-JSON.stringify(bidResult)%>;
+      bidResult.sort((a,b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+      const createdAt = bidResult.map((bidsObj) => bidsObj.created_at);
+      const priceFloor = bidResult.map((bidsObj) => bidsObj.price_floor);
+      const bids = bidResult.map((bidsObj) => bidsObj.bid_price);
+      console.log('createdAt :>> ', createdAt);
+
+      for (const i in createdAt) {
+        createdAt[i] = new Date(createdAt[i]).toLocaleString();
+      }
+
+      const data = {
+        labels: createdAt,
+        datasets: [{
+          label: 'My First dataset',
+          backgroundColor: 'rgb(255, 99, 132)',
+          borderColor: 'rgb(255, 99, 132)',
+          data: priceFloor,
+        }]
+      };
+      const config = {
+        type: 'line',
+        data: data,
+        options: {
+          scales: {
+            y: {
+              min: 0,
+              max: 1.5*Math.max(...priceFloor),
+            }
+          },
+        }
+      };
+      var myChart = new Chart(
+        document.getElementById('myChart'),
+        config
+      );
+    </script>
+
+    
 
     <script>
+      
+      console.log(Date.parse(bidResult[0].created_at));
       const days = document.getElementById("days");
       const hrs = document.getElementById("hrs");
       const mins = document.getElementById("mins");

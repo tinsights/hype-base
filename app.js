@@ -183,7 +183,7 @@ const userLogin = (req, res) => {
       if (result.rows.length === 0) {
         // the error for incorrect email and incorrect password are the same for security reasons.
         // This is to prevent detection of whether a user has an account for a given service.
-        res.status(403).send('invalid email');
+        res.status(403).send('invalid credentials');
         return;
       }
 
@@ -201,7 +201,7 @@ const userLogin = (req, res) => {
       if (user.password !== hashedPassword) {
         // the error for incorrect email and incorrect password are the same for security reasons.
         // This is to prevent detection of whether a user has an account for a given service.
-        res.status(403).send('invalid password');
+        res.status(403).send('invalid credentials');
         return;
       }
       console.log('Successful Login');
