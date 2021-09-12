@@ -53,8 +53,13 @@
         </div>
  
       </div>
-      <div>
-        <canvas id="myChart"></canvas>
+      <div class="row">
+        <div class="col col-lg-6">
+          <canvas id="priceChart"></canvas>
+        </div>
+        <div class="col col-lg-6">
+          <canvas id="bidChart"></canvas>
+        </div>
       </div>
  
 
@@ -81,15 +86,19 @@
             <% const bidsArr = bidResult.sort((a, b) => b.bid_price - a.bid_price) %> 
             <% bidsArr.forEach((bid) => { %> 
               <% const bidtime = bid.created_at %>
-              <% if (bid.bid_price >= launch.current_price) { %> 
-            <tr>
-              <th scope="row"><%= index  %> </th>
+              <% let rowStyle = `table-success`; %> 
+              <% if (bid.bid_price >= launch.current_price) { %>
+                <% rowStyle =`table-success`; %>
+                <% } else { %>
+                <% rowStyle =`table-warning`;}; %>
+            <tr class="<%= rowStyle %>">
+              <th scope="row"> <%= index  %> </th>
               <td class="text-center"><%= bid.username %> </td>
               <td class="text-center"><%= bid.bid_price %></td>
               <td class="text-center"><%= bid.price_floor %></td>
               <td class="text-center"><%= bidtime.toLocaleString() %> </td>
             </tr>
-            <% index+=1; } %> 
+            <% index+=1; %> 
             <% }); %> 
           </tbody>
         </table>
@@ -111,7 +120,6 @@
     <div id="isActive" class="d-none"><%= launch.is_active %></div>
     
     <script type='text/javascript'>
-
       Date.prototype.formatMMDDYYYY = function() {
           return (this.getDate() +
           "/" +
@@ -119,7 +127,6 @@
           "/" +  this.getFullYear()
           )
       };
-
 
       var bidResult =<%-JSON.stringify(bidResult)%>;
       bidResult.sort((a,b) => Date.parse(a.created_at) - Date.parse(b.created_at));
@@ -132,19 +139,20 @@
         createdAt[i] = new Date(createdAt[i]).toLocaleString();
       }
 
-      const data = {
+      const priceData = {
         labels: createdAt,
         datasets: [{
-          label: 'My First dataset',
+          label: 'Price History',
           backgroundColor: 'rgb(255, 99, 132)',
           borderColor: 'rgb(255, 99, 132)',
           data: priceFloor,
         }]
       };
-      const config = {
+      const priceConfig = {
         type: 'line',
-        data: data,
+        data: priceData,
         options: {
+          responsive: true,
           scales: {
             y: {
               min: 0,
@@ -153,10 +161,69 @@
           },
         }
       };
-      var myChart = new Chart(
-        document.getElementById('myChart'),
-        config
+      var priceChart = new Chart(
+        document.getElementById('priceChart'),
+        priceConfig
       );
+
+      // bar chart
+
+      var bidHist =<%-JSON.stringify(bidHist)%>;
+      var bidHistBins =<%-JSON.stringify(bidHistBins)%>;
+
+      var binMin = bidHistBins.map((binObj) => binObj.min);
+      var binMax = bidHistBins.map((binObj) => binObj.max);
+      var binCounts= bidHistBins.map((binObj) => binObj.count);
+
+      console.log('binMin :>> ', binMin);
+      console.log('binMax :>> ', binMax);
+      console.log('binCounts :>> ', binCounts);
+      var binCount = [];
+      for (var i in bidHist) {
+        binCount.push(bidHist[i][1]);
+      }
+
+
+      const bidData = {
+          labels: binMin,
+          datasets: [{
+            label: 'Bid Spread',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: binCounts,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(255, 159, 64, 0.2)',
+              'rgba(255, 205, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+              'rgba(201, 203, 207, 0.2)'
+            ],
+            borderColor: [
+              'rgb(255, 99, 132)',
+              'rgb(255, 159, 64)',
+              'rgb(255, 205, 86)',
+              'rgb(75, 192, 192)',
+              'rgb(54, 162, 235)',
+              'rgb(153, 102, 255)',
+              'rgb(201, 203, 207)'
+            ],
+            borderWidth: 1
+          }]
+        };
+      const bidConfig = {
+        type: 'bar',
+        data: bidData,
+        options: {
+          responsive: true,
+        },
+      };
+      var bidChart = new Chart(
+        document.getElementById('bidChart'),
+        bidConfig
+      );
+
     </script>
 
     

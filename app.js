@@ -285,12 +285,15 @@ const viewLaunch = (req, res) => {
     const launch = result[0].rows[0];
     const bidResult = result[1].rows;
     const bids = bidResult.map((bidsObj) => bidsObj.bid_price);
-    // const bidHist = computeHistogram(bids);
-    // console.log('bidHist :>> ', bidHist);
+    const bidHist = computeHistogram(bids);
+    const bidHistBins = generateHist(bids);
+    console.log('bidHistBins :>> ', bidHistBins);
     const content = {
       launch,
       bids,
       bidResult,
+      bidHist,
+      bidHistBins,
     };
     res.render('launch', content);
   });
@@ -381,4 +384,27 @@ const selectWinners = (id, qty, bids) => {
               WHERE launch_id = ${id}
               AND
               bid_price >= ${minBid}`);
+};
+
+const generateHist = (bidsArr) => {
+  const bidHist = computeHistogram(bidsArr, 8);
+  bidsArr.sort((a, b) => a - b);
+  console.log('bidsArr :>> ', bidsArr);
+  const bins = [];
+  for (let i = 0; i < bidHist.length; i += 1) {
+    if (bidHist[i][1] !== 0) {
+      const subArr = bidsArr.splice(0, bidHist[i][1]);
+      let min = Math.min(...subArr);
+      let max = Math.max(...subArr);
+      min = isFinite(min) ? min : 0;
+      max = isFinite(max) ? max : 0;
+      const bin = {
+        min: Math.min(...subArr) || 0,
+        max: Math.max(...subArr) || 0,
+        count: bidHist[i][1],
+      };
+      bins.push(bin);
+    }
+  }
+  return bins;
 };
